@@ -8,6 +8,7 @@ import { LiveBroadcaster } from './ws/broadcaster';
 import { WsServer } from './ws/wsServer';
 import { SessionStore } from './session/sessionStore';
 import { SessionManager, recoverInterruptedSessions } from './session/sessionManager';
+import { ReplayEngine } from './replay/replayEngine';
 import type { ServerStatus } from '../../shared/api';
 
 async function main(): Promise<void> {
@@ -64,6 +65,7 @@ async function main(): Promise<void> {
 
   const http = createHttpServer(config, logger, { getStatus, sessionStore });
   const wsServer = new WsServer(http.server, logger, broadcaster, getStatus);
+  wsServer.setReplayService(new ReplayEngine(logger, sessionStore));
 
   broadcaster.start();
   sessionManager.start();
