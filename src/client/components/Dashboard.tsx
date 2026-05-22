@@ -14,11 +14,13 @@ import { TrackMap } from './map/TrackMap';
 import { MPS_TO_KMH } from '../lib/format';
 
 function WaitingOverlay({ message }: { message: string }) {
+  // Informational only — `pointer-events-none` keeps the map and its controls
+  // usable underneath while there is no telemetry.
   return (
-    <div className="absolute inset-0 z-10 flex items-center justify-center bg-cockpit-bg/80 backdrop-blur-sm">
-      <div className="text-center">
-        <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-cockpit-edge border-t-cockpit-accent" />
-        <p className="text-lg font-medium text-slate-300">{message}</p>
+    <div className="pointer-events-none absolute inset-0 z-10 flex items-start justify-center bg-cockpit-bg/70 pt-24">
+      <div className="rounded-lg border border-cockpit-edge bg-cockpit-panel/90 px-6 py-4 text-center">
+        <div className="mx-auto mb-3 h-9 w-9 animate-spin rounded-full border-2 border-cockpit-edge border-t-cockpit-accent" />
+        <p className="text-base font-medium text-slate-300">{message}</p>
       </div>
     </div>
   );

@@ -16,3 +16,8 @@ export function makeWorldToPixel(cal: MapCalibration): WorldToPixel {
 
   return (worldX, worldZ) => [slopeX * worldX + interceptX, slopeY * worldZ + interceptY];
 }
+
+/** Midpoint of the two calibration pixels — a sensible initial map centre. */
+export function calibrationCenterPixel(cal: MapCalibration): [number, number] {
+  return [(cal.pixelA[0] + cal.pixelB[0]) / 2, (cal.pixelA[1] + cal.pixelB[1]) / 2];
+}

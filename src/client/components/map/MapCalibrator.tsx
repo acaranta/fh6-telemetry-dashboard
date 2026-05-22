@@ -3,8 +3,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useTelemetryStore } from '../../state/telemetryStore';
 import { makeMapCrs } from '../../map/mapCrs';
+import { calibrationCenterPixel } from '../../map/calibration';
 import { api } from '../../lib/api';
-import { FH6_MAP, type MapCalibration } from '../../../../shared/mapDefaults';
+import { DEFAULT_MAP_SETTINGS, FH6_MAP, type MapCalibration } from '../../../../shared/mapDefaults';
 
 interface CapturePoint {
   world: [number, number] | null;
@@ -39,7 +40,18 @@ export function MapCalibrator({ onClose }: MapCalibratorProps) {
       maxZoom: 18,
       attributionControl: false,
     });
-    map.setView([0, 0], 10);
+
+    // Open over the actual map area rather than the tile-pyramid origin.
+    const centerOnCalibration = (cal: MapCalibration): void => {
+      map.setView(map.unproject(L.point(calibrationCenterPixel(cal)), FH6_MAP.maxZoom), 12);
+    };
+    centerOnCalibration(DEFAULT_MAP_SETTINGS.calibration);
+    api
+      .settings()
+      .then((s) => centerOnCalibration(s.calibration))
+      .catch(() => {
+        /* keep the default centre */
+      });
 
     if (mapEnabled) {
       L.tileLayer('/maptiles/{z}/{x}/{y}.jpg', {
@@ -110,7 +122,7 @@ export function MapCalibrator({ onClose }: MapCalibratorProps) {
       onClick={onClose}
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-3xl flex-col gap-3 rounded-xl border border-cockpit-edge bg-cockpit-panel p-4"
+        className="flex max-h-[90vh] w-full max-w-3xl flex-col gap-3 overflow-y-auto rounded-xl border border-cockpit-edge bg-cockpit-panel p-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -123,12 +135,36 @@ export function MapCalibrator({ onClose }: MapCalibratorProps) {
           </button>
         </div>
 
-        <p className="text-xs text-slate-500">
-          For each point: drive to a recognisable landmark in-game and press “Capture world”, then
-          click that same landmark on the map below.
-        </p>
+        <div className="rounded-lg border border-cockpit-edge bg-cockpit-bg/50 p-3 text-xs text-slate-400">
+          <p className="mb-1.5 text-slate-300">
+            Calibration lines the game's world coordinates up with the map image — you only need to
+            do it once.
+          </p>
+          <ol className="list-decimal space-y-1 pl-4">
+            <li>
+              In-game, drive to a sharp, easily-recognisable landmark — a tight corner or a junction
+              works best.
+            </li>
+            <li>
+              Select <span className="text-slate-200">Point A</span> below and press{' '}
+              <span className="text-slate-200">Capture world</span> to record the car's position.
+            </li>
+            <li>Click that exact same spot on the map.</li>
+            <li>
+              Repeat for <span className="text-slate-200">Point B</span> at a second landmark, as
+              far from the first as possible for accuracy.
+            </li>
+            <li>
+              Press <span className="text-slate-200">Save Calibration</span> — the track map will
+              use it from then on.
+            </li>
+          </ol>
+        </div>
 
-        <div ref={containerRef} className="h-72 w-full overflow-hidden rounded bg-cockpit-bg" />
+        <div
+          ref={containerRef}
+          className="isolate h-72 w-full shrink-0 overflow-hidden rounded bg-cockpit-bg"
+        />
 
         <div className="grid grid-cols-2 gap-3">
           <SlotCard

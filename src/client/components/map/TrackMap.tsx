@@ -4,9 +4,9 @@ import 'leaflet/dist/leaflet.css';
 import { useTelemetryStore, type TrackPath } from '../../state/telemetryStore';
 import { Panel } from '../common/Panel';
 import { makeMapCrs } from '../../map/mapCrs';
-import { makeWorldToPixel, type WorldToPixel } from '../../map/calibration';
+import { calibrationCenterPixel, makeWorldToPixel, type WorldToPixel } from '../../map/calibration';
 import { api } from '../../lib/api';
-import { DEFAULT_MAP_SETTINGS, FH6_MAP } from '../../../../shared/mapDefaults';
+import { DEFAULT_MAP_SETTINGS, FH6_MAP, type MapCalibration } from '../../../../shared/mapDefaults';
 import type { TelemetryFrame } from '../../../../shared/telemetry';
 import { MapCalibrator } from './MapCalibrator';
 
@@ -35,7 +35,14 @@ export function TrackMap() {
       attributionControl: false,
       preferCanvas: true,
     });
-    map.setView([0, 0], 10);
+    let fitted = false;
+    let lastFit = 0;
+
+    // Open over the actual map area, not the tile-pyramid origin.
+    const centerOnCalibration = (cal: MapCalibration): void => {
+      map.setView(map.unproject(L.point(calibrationCenterPixel(cal)), FH6_MAP.maxZoom), 12);
+    };
+    centerOnCalibration(DEFAULT_MAP_SETTINGS.calibration);
 
     if (mapEnabled) {
       // Tiles are proxied and cached lazily by the server on first request.
@@ -66,6 +73,7 @@ export function TrackMap() {
       .settings()
       .then((settings) => {
         worldToPixel = makeWorldToPixel(settings.calibration);
+        if (!fitted) centerOnCalibration(settings.calibration);
       })
       .catch(() => {
         /* keep defaults */
@@ -73,9 +81,6 @@ export function TrackMap() {
 
     const toLatLng = (x: number, z: number): L.LatLng =>
       map.unproject(L.point(worldToPixel(x, z)), FH6_MAP.maxZoom);
-
-    let fitted = false;
-    let lastFit = 0;
 
     const render = (frame: TelemetryFrame | null, path: TrackPath): void => {
       if (path.length > 0) {
@@ -132,11 +137,13 @@ export function TrackMap() {
 
   return (
     <Panel title="Track Map">
-      <div className="relative">
+      {/* `isolate` keeps Leaflet's internal z-indexes from escaping above
+          dashboard overlays and modals. */}
+      <div className="relative isolate">
         <div ref={containerRef} className="h-80 w-full overflow-hidden rounded bg-cockpit-bg" />
         <button
           onClick={() => setCalibrating(true)}
-          className="absolute right-2 top-2 z-[600] rounded border border-cockpit-edge bg-cockpit-panel/90 px-2 py-1 text-xs text-slate-300 hover:bg-cockpit-bg"
+          className="absolute right-2 top-2 z-[1000] rounded border border-cockpit-edge bg-cockpit-panel/90 px-2 py-1 text-xs text-slate-300 hover:bg-cockpit-bg"
         >
           Calibrate
         </button>

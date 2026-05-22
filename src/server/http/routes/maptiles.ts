@@ -16,8 +16,10 @@ export function registerMapTileRoutes(app: FastifyInstance, tiles: MapTileServic
       const z = parseCoord(req.params.z);
       const x = parseCoord(req.params.x);
       const y = parseCoord(req.params.y.replace(/\.jpg$/, ''));
+      // An out-of-range coordinate is simply "no tile there" — 404, not 400,
+      // so Leaflet treats it as an empty edge tile without noise.
       if (z === null || x === null || y === null) {
-        return reply.code(400).send({ error: 'invalid tile coordinate' });
+        return reply.code(404).send();
       }
       const tile = await tiles.getTile(z, x, y);
       if (!tile) {
