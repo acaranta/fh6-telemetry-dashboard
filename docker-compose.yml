@@ -5,15 +5,15 @@ services:
     container_name: fh6-dashboard
     restart: unless-stopped
     ports:
-      - '8131:8080/tcp'
+      - '8131:8131/tcp'
       - '20440:20440/udp'
     environment:
-      WEB_PORT: 8080
+      WEB_PORT: 8131
       UDP_HOST: 0.0.0.0
       UDP_PORT: 20440
       DATA_DIR: /data
       SESSION_TIMEOUT_SECONDS: 30
-      COMPRESS_FINISHED_SESSIONS: 'false'
+      COMPRESS_FINISHED_SESSIONS: 'true'
       ALLOW_DELETE_SESSIONS: 'false'
       LOCK_TO_FIRST_SENDER: 'false'
       LOG_LEVEL: info
