@@ -186,16 +186,40 @@ export function TrackMap() {
   }, [mapEnabled]);
 
   // Toggle fullscreen via ESC, and let Leaflet recompute its size when the
-  // container's dimensions change.
+  // container's dimensions change. invalidateSize alone is not enough — the
+  // tile layer keeps its previous bounds and won't fetch tiles for newly
+  // revealed area (going fullscreen) or repaint stale tiles when shrinking
+  // back. Re-applying the view and redrawing the tile layer fixes both.
   useEffect(() => {
-    const t = window.setTimeout(() => mapRef.current?.invalidateSize(), 60);
-    if (!fullscreen) return () => window.clearTimeout(t);
-    const onKey = (e: KeyboardEvent) => {
+    const refit = (): void => {
+      const m = mapRef.current;
+      if (!m) return;
+      m.invalidateSize({ animate: false, pan: false });
+      m.setView(m.getCenter(), m.getZoom(), { animate: false });
+      tileLayerRef.current?.redraw();
+    };
+    // Two animation frames + a small delay so the toggled CSS has been
+    // applied and the container has its new dimensions before we measure.
+    const raf1 = window.requestAnimationFrame(() => {
+      const raf2 = window.requestAnimationFrame(refit);
+      cancelRefs.raf2 = raf2;
+    });
+    const cancelRefs: { raf2: number | null; timer: number | null } = {
+      raf2: null,
+      timer: window.setTimeout(refit, 120),
+    };
+    const cleanup = (): void => {
+      window.cancelAnimationFrame(raf1);
+      if (cancelRefs.raf2 != null) window.cancelAnimationFrame(cancelRefs.raf2);
+      if (cancelRefs.timer != null) window.clearTimeout(cancelRefs.timer);
+    };
+    if (!fullscreen) return cleanup;
+    const onKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') setFullscreen(false);
     };
     window.addEventListener('keydown', onKey);
     return () => {
-      window.clearTimeout(t);
+      cleanup();
       window.removeEventListener('keydown', onKey);
     };
   }, [fullscreen]);
@@ -233,15 +257,16 @@ export function TrackMap() {
     <Panel title="Track Map">
       {/* `isolate` keeps Leaflet's internal z-indexes from escaping above
           dashboard overlays and modals. */}
-      <div className={fullscreen ? 'fixed inset-0 z-[1100] bg-cockpit-bg p-2' : 'relative isolate'}>
-        <div
-          ref={containerRef}
-          className={
-            fullscreen
-              ? 'h-full w-full overflow-hidden rounded bg-cockpit-bg'
-              : 'h-40 w-full overflow-hidden rounded bg-cockpit-bg'
-          }
-        />
+      {/* The inner container's className is kept constant: Leaflet appends
+          `leaflet-container` to it on init via classList, and React would
+          wipe that class away if we toggled `className` on this element. All
+          size/positioning changes live on the wrapper instead. */}
+      <div
+        className={
+          fullscreen ? 'fixed inset-0 z-[1100] bg-cockpit-bg p-2' : 'relative isolate h-40'
+        }
+      >
+        <div ref={containerRef} className="h-full w-full overflow-hidden rounded bg-cockpit-bg" />
         <div className="absolute right-2 top-2 z-[1000] flex items-center gap-1.5">
           <div className="flex overflow-hidden rounded border border-cockpit-edge bg-cockpit-panel/90 text-xs">
             <button
