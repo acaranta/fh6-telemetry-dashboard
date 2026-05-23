@@ -151,6 +151,37 @@ npm run download-tiles  # pre-download the map tiles
   assets, so use of the map feature is at the operator's discretion. The track
   map falls back to a tile-less vector trace when tiles are unavailable.
 
+## Credits & references
+
+This project would not exist without prior community work on Forza telemetry
+and on the Forza Horizon 6 map. Inspiration and concrete reference material:
+
+- **[TheBanHammer/fh6-tel](https://github.com/TheBanHammer/fh6-tel)** — a
+  Rust + Tauri + Svelte desktop dashboard for FH6 (MIT). Reference for the
+  Leaflet `CRS.Simple` setup with the `(1,0,1,0)` transformation, the
+  `{z}/{y}/{x}` MapGenie URL convention, the calibration math, and the
+  general session-recording approach.
+- **[AmiralPatate/FM23Data](https://github.com/AmiralPatate/FM23Data)** —
+  Forza Motorsport (2023) `modelexport.csv`, used to map `carOrdinal` to
+  make/model/year in the session list. Best-effort coverage for FH6 — unknown
+  ordinals fall back to `Car #N`. Regenerate via `npm run update-cars`.
+- **[MapGenie — Forza Horizon 6](https://mapgenie.io/forza-horizon-6)** —
+  source of the map tiles served lazily by the in-app tile proxy. Tiles are
+  extracted game assets; the app downloads them on demand into your `/data`
+  volume and never redistributes them.
+- **Forza "Data Out" documentation:**
+  - [Forza Horizon 6 Data Out](https://support.forza.net/hc/en-us/articles/51744149102611-Forza-Horizon-6-Data-Out-Documentation)
+  - [Forza Motorsport Data Out](https://support.forzamotorsport.net/hc/en-us/articles/21742934024211-Forza-Motorsport-Data-Out-Documentation)
+  - [Forza forums — UDP telemetry packet details](https://forums.forza.net/t/udp-telemetry-packet-details/629111)
+  - [Forza forums — FH5 Data Out variables and structure](https://forums.forza.net/t/data-out-telemetry-variables-and-structure/535984)
+- **Other Forza telemetry parsers (cross-checked while assembling the packet
+  offset table):**
+  - [grimsi/ForzaTelemetryReader](https://github.com/grimsi/ForzaTelemetryReader)
+  - [richstokes/Forza-data-tools](https://github.com/richstokes/Forza-data-tools)
+  - [nettrom/forza_motorsport](https://github.com/nettrom/forza_motorsport)
+  - [fabiomix/forza-horizon-telemetry](https://github.com/fabiomix/forza-horizon-telemetry)
+  - [csutorasa/go-forza-telemetry](https://pkg.go.dev/github.com/csutorasa/go-forza-telemetry)
+
 ## License
 
 MIT

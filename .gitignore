@@ -4,6 +4,7 @@ coverage/
 *.log
 .DS_Store
 .env
-fh6-data/
+fh6-data
+fh6-data-test
 test/fixtures/packet.bin
 .playwright-mcp/

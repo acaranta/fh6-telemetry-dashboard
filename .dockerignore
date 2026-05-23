@@ -4,6 +4,7 @@ coverage
 .git
 .gitignore
 fh6-data
+fh6-data-test
 *.log
 .claude
 test

@@ -25,8 +25,11 @@ export interface History {
   brake: number[];
 }
 
-/** World [x, z] positions for the track map; capped, distance-sampled. */
-export type TrackPath = Array<[number, number]>;
+/**
+ * Track-map sample: `[worldX, worldZ, recvTimeMs]`. Capped, distance-sampled.
+ * The third element drives the "last N seconds" filter on the minimap.
+ */
+export type TrackPath = Array<[number, number, number]>;
 
 const TRACK_MAX_POINTS = 8000;
 /** Minimum movement (m) before a new track point is recorded. */
@@ -72,13 +75,13 @@ interface TelemetryStore {
   setSend: (send: (msg: ClientMessage) => void) => void;
 }
 
-function nextTrackPath(path: TrackPath, x: number, z: number): TrackPath {
+function nextTrackPath(path: TrackPath, x: number, z: number, t: number): TrackPath {
   const last = path[path.length - 1];
   if (last && Math.hypot(x - last[0], z - last[1]) < TRACK_MIN_STEP) {
     return path;
   }
   const next = path.length >= TRACK_MAX_POINTS ? path.slice(1) : path.slice();
-  next.push([x, z]);
+  next.push([x, z, t]);
   return next;
 }
 
@@ -106,7 +109,7 @@ export const useTelemetryStore = create<TelemetryStore>((set) => ({
         throttle: pushCapped(state.history.throttle, frame.accelerator),
         brake: pushCapped(state.history.brake, frame.brake),
       },
-      trackPath: nextTrackPath(state.trackPath, frame.positionX, frame.positionZ),
+      trackPath: nextTrackPath(state.trackPath, frame.positionX, frame.positionZ, frame.recvTime),
     })),
 
   setConnection: (connection) => set({ connection }),
