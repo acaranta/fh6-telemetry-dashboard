@@ -32,7 +32,7 @@ export function ReplayControls() {
   };
 
   return (
-    <div className="border-t border-cockpit-edge bg-cockpit-panel px-4 py-2">
+    <div className="relative z-[1200] border-t border-cockpit-edge bg-cockpit-panel px-4 py-2">
       <div
         onClick={seek}
         className="group h-2.5 cursor-pointer rounded-full bg-cockpit-bg"
