@@ -5,8 +5,7 @@ import { GearIndicator } from './cockpit/GearIndicator';
 import { PedalBars } from './cockpit/PedalBars';
 import { SteeringIndicator } from './cockpit/SteeringIndicator';
 import { GForceMeter } from './cockpit/GForceMeter';
-import { TirePanel } from './cockpit/TirePanel';
-import { SuspensionPanel } from './cockpit/SuspensionPanel';
+import { TireSuspensionPanel } from './cockpit/TireSuspensionPanel';
 import { LapInfo } from './cockpit/LapInfo';
 import { VehicleStats } from './cockpit/VehicleStats';
 import { RollingChart } from './charts/RollingChart';
@@ -38,30 +37,32 @@ export function Dashboard() {
 
   return (
     <div className="relative mx-auto max-w-[1600px] p-2">
-      <div className="grid grid-cols-3 items-center gap-2">
+      <div className="grid grid-cols-2 items-stretch gap-2 lg:grid-cols-5">
         <div className="flex justify-center">
           <Tachometer />
         </div>
+        <VehicleStats />
         <div className="flex justify-center">
           <GearIndicator />
         </div>
+        <LapInfo />
         <div className="flex justify-center">
           <Speedometer />
         </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-2 lg:grid-cols-6">
-        <PedalBars />
-        <SteeringIndicator />
-        <GForceMeter />
-        <SuspensionPanel />
-        <LapInfo />
-        <VehicleStats />
-      </div>
-
-      <div className="mt-2 grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <TrackMap />
-        <TirePanel />
+      <div className="mt-2 grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:col-start-1 lg:row-start-1">
+          <PedalBars />
+          <SteeringIndicator />
+          <GForceMeter />
+        </div>
+        <div className="lg:col-start-2 lg:row-span-2">
+          <TireSuspensionPanel />
+        </div>
+        <div className="lg:col-start-1 lg:row-start-2">
+          <TrackMap />
+        </div>
       </div>
 
       <div className="mt-2 grid grid-cols-2 gap-2 lg:grid-cols-4">
